@@ -1,0 +1,62 @@
+# .NET build, test, coverage, and publish outputs
+[Bb]in/
+[Oo]bj/
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+/artifacts/
+/publish/
+
+# Generated TechCheck packages and scratch work
+/outputs/
+/work/
+
+# NuGet and package artifacts
+/.nuget/
+/packages/
+*.nupkg
+*.snupkg
+
+# Visual Studio, VS Code, Rider, and user-local settings
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+*.sln.iml
+*.DotSettings.user
+_ReSharper*/
+
+# Logs, caches, and temporary files
+/logs/
+*.log
+.cache/
+*.tmp
+*.temp
+~$*
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+**/secrets.json
+**/appsettings.*.local.json
+.aws/
+.azure/
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

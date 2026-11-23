@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>TechCheck.Tests</RootNamespace>
+    <AssemblyName>TechCheck.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TechCheck.Core\TechCheck.Core.csproj" />
+  </ItemGroup>
+</Project>

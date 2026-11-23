@@ -1,0 +1,548 @@
+<Window x:Class="TechCheck.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="TechCheck"
+        Width="900"
+        Height="660"
+        MinWidth="760"
+        MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    <Grid Background="{StaticResource WindowBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="184" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Background="{StaticResource SidebarBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid Margin="15,18,15,15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="26" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Border Width="35"
+                            Height="35"
+                            Background="#1E3035"
+                            BorderBrush="{StaticResource AccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                        <Grid>
+                            <Border Width="20"
+                                    Height="14"
+                                    BorderBrush="{StaticResource AccentBrush}"
+                                    BorderThickness="1.5"
+                                    CornerRadius="1"
+                                    VerticalAlignment="Center"
+                                    Margin="0,-4,0,0" />
+                            <TextBlock Text="✓"
+                                       Foreground="{StaticResource GoodBrush}"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Bottom"
+                                       Margin="0,0,5,3" />
+                        </Grid>
+                    </Border>
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="TECHCHECK" FontSize="13" FontWeight="Bold" />
+                        <TextBlock Text="PC diagnostics"
+                                   Style="{StaticResource LabelText}"
+                                   FontSize="10" />
+                    </StackPanel>
+                </StackPanel>
+
+                <ListBox Grid.Row="2"
+                         Style="{StaticResource NavList}"
+                         ItemContainerStyle="{StaticResource NavItem}"
+                         SelectedIndex="{Binding SelectedSectionIndex, Mode=TwoWay}"
+                         AutomationProperties.Name="TechCheck sections">
+                    <ListBoxItem Content="Overview" />
+                    <ListBoxItem Content="System" />
+                    <ListBoxItem Content="Network" />
+                    <ListBoxItem Content="Quick Tools" />
+                </ListBox>
+
+                <StackPanel Grid.Row="3">
+                    <TextBlock Text="Local only · no telemetry"
+                               Style="{StaticResource LabelText}"
+                               FontSize="10"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10" />
+                    <Button Content="Close"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="CloseButton_Click"
+                            AutomationProperties.HelpText="Close TechCheck completely" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="76" />
+                <RowDefinition Height="2" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="24,14,24,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CurrentSectionTitle}" Style="{StaticResource TitleText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                        <TextBlock Text="{Binding CheckStatus}" Style="{StaticResource LabelText}" />
+                        <TextBlock Text="  ·  "
+                                   Style="{StaticResource LabelText}"
+                                   Visibility="{Binding HasResults, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock Text="{Binding LastCheckedText}"
+                                   Style="{StaticResource LabelText}"
+                                   Visibility="{Binding HasResults, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Refresh"
+                        Style="{StaticResource SecondaryButton}"
+                        IsEnabled="{Binding IsChecking, Converter={StaticResource InverseBooleanConverter}}"
+                        Click="RefreshButton_Click"
+                        AutomationProperties.HelpText="Refresh all system and network diagnostics" />
+            </Grid>
+
+            <ProgressBar Grid.Row="1"
+                         Style="{StaticResource ThinProgress}"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+            <TabControl Grid.Row="2"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        SelectedIndex="{Binding SelectedSectionIndex, Mode=TwoWay}"
+                        KeyboardNavigation.TabNavigation="Local">
+                <TabControl.Template>
+                    <ControlTemplate TargetType="TabControl">
+                        <ContentPresenter ContentSource="SelectedContent" />
+                    </ControlTemplate>
+                </TabControl.Template>
+
+                <TabItem>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="24,14,24,24">
+                            <TextBlock Text="A focused view of this PC's essentials."
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Margin="0,0,0,14" />
+
+                            <UniformGrid Columns="3" Margin="0,0,0,12">
+                                <Border Style="{StaticResource Card}" Padding="15" Margin="0,0,8,0">
+                                    <StackPanel>
+                                        <TextBlock Text="DEVICE" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding DeviceName}"
+                                                   Style="{StaticResource ValueText}"
+                                                   FontSize="15"
+                                                   Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource Card}" Padding="15" Margin="4,0">
+                                    <StackPanel>
+                                        <TextBlock Text="WINDOWS" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding WindowsSummary}"
+                                                   Style="{StaticResource ValueText}"
+                                                   FontSize="15"
+                                                   Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource Card}" Padding="15" Margin="8,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="UPTIME" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding UptimeText}"
+                                                   Style="{StaticResource ValueText}"
+                                                   FontSize="15"
+                                                   Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="System health" Style="{StaticResource SectionTitleText}" Margin="0,0,0,12" />
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="88" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding CpuStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding CpuStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="CPU" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding CpuHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       TextAlignment="Right" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="88" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding MemoryStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding MemoryStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="Memory" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding MemoryHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       TextAlignment="Right" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="88" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding StorageStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding StorageStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="Storage" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding StorageHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       TextAlignment="Right" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Network checks" Style="{StaticResource SectionTitleText}" Margin="0,0,0,12" />
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding AdapterStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding AdapterStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="Adapter" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding AdapterHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding DnsStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding DnsStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="DNS" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding DnsHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding InternetStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                       Foreground="{Binding InternetStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                       FontWeight="Bold" FontSize="16" />
+                                            <TextBlock Grid.Column="1" Text="Internet" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding InternetHealthText}"
+                                                       Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Run Check"
+                                        Style="{StaticResource PrimaryButton}"
+                                        MinWidth="106"
+                                        IsEnabled="{Binding IsChecking, Converter={StaticResource InverseBooleanConverter}}"
+                                        Click="RunCheckButton_Click" />
+                                <Button Content="Copy Report"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Margin="9,0,0,0"
+                                        IsEnabled="{Binding HasResults}"
+                                        Click="CopyReportButton_Click" />
+                                <Button Content="Save Report"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Margin="9,0,0,0"
+                                        IsEnabled="{Binding HasResults}"
+                                        Click="SaveReportButton_Click" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="24,14,24,24">
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Computer" Style="{StaticResource SectionTitleText}" Margin="0,0,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="20" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Computer name" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding DeviceName}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Manufacturer" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding Manufacturer}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Model" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding Model}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Serial number" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding SerialNumber}" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Windows" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding WindowsFullName}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Architecture" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding WindowsArchitecture}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Current user" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding CurrentUser}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="System uptime" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding UptimeText}" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Processor" Style="{StaticResource SectionTitleText}" Margin="0,0,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="CPU model" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding ProcessorName}" Style="{StaticResource ValueText}" Margin="0,3,10,0" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Logical processors" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding LogicalProcessorCount}" Style="{StaticResource ValueText}" Margin="0,3,10,0" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Current usage" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding CpuUsageText}" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Memory" Style="{StaticResource SectionTitleText}" Margin="0,0,0,14" />
+                                        <TextBlock Text="Installed" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding InstalledMemory}" Style="{StaticResource ValueText}" Margin="0,3,0,9" />
+                                        <TextBlock Text="Used / Available" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding MemoryBreakdown}" Style="{StaticResource ValueText}" Margin="0,3,0,9" />
+                                        <TextBlock Text="Usage" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding MemoryUsageText}" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Windows drive" Style="{StaticResource SectionTitleText}" Margin="0,0,0,14" />
+                                        <TextBlock Text="Drive / Total" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding StorageDriveAndTotal}" Style="{StaticResource ValueText}" Margin="0,3,0,9" />
+                                        <TextBlock Text="Used / Free" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding StorageBreakdown}" Style="{StaticResource ValueText}" Margin="0,3,0,9" />
+                                        <TextBlock Text="Usage" Style="{StaticResource LabelText}" />
+                                        <TextBlock Text="{Binding StorageUsageText}" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="24,14,24,24">
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Primary active connection" Style="{StaticResource SectionTitleText}" Margin="0,0,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="20" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Adapter" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding AdapterName}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Connection type" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding ConnectionType}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="IPv4 address" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding IPv4Address}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Subnet mask" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding SubnetMask}" Style="{StaticResource ValueText}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Default gateway" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding DefaultGateway}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="DNS servers" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding DnsServers}" Style="{StaticResource ValueText}" TextWrapping="Wrap" Margin="0,3,0,12" />
+                                            <TextBlock Text="MAC address" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="{Binding MacAddress}" Style="{StaticResource ValueText}" Margin="0,3,0,12" />
+                                            <TextBlock Text="Diagnostics target" Style="{StaticResource LabelText}" />
+                                            <TextBlock Text="example.com" Style="{StaticResource ValueText}" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Connectivity diagnostics" Style="{StaticResource SectionTitleText}" Margin="0,0,0,12" />
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="34" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding AdapterStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                   Foreground="{Binding AdapterStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                   FontSize="18" FontWeight="Bold" />
+                                        <TextBlock Grid.Column="1" Text="Network adapter" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding AdapterHealthText}"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Margin="12,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="34" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding DnsStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                   Foreground="{Binding DnsStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                   FontSize="18" FontWeight="Bold" />
+                                        <TextBlock Grid.Column="1" Text="DNS resolution" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding DnsHealthText}"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Margin="12,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="34" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding InternetStatus, Converter={StaticResource StatusGlyphConverter}}"
+                                                   Foreground="{Binding InternetStatus, Converter={StaticResource StatusBrushConverter}}"
+                                                   FontSize="18" FontWeight="Bold" />
+                                        <TextBlock Grid.Column="1" Text="Internet access" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding InternetHealthText}"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Margin="12,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <TextBlock Text="DNS and HTTPS checks use short timeouts. ICMP is not used as the deciding signal."
+                                               Style="{StaticResource LabelText}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,12,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="24,14,14,24">
+                            <TextBlock Text="Launch trusted Windows utilities. TechCheck never passes user-provided commands."
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,10,14" />
+                            <UniformGrid Columns="2">
+                                <Button Style="{StaticResource ToolButton}" Tag="TaskManager" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Task Manager" FontWeight="SemiBold" />
+                                        <TextBlock Text="Processes and performance" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="DeviceManager" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Device Manager" FontWeight="SemiBold" />
+                                        <TextBlock Text="Hardware and drivers" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="EventViewer" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Event Viewer" FontWeight="SemiBold" />
+                                        <TextBlock Text="Windows event logs" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="NetworkConnections" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Network Connections" FontWeight="SemiBold" />
+                                        <TextBlock Text="Network adapters" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="WindowsSettings" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Windows Settings" FontWeight="SemiBold" />
+                                        <TextBlock Text="System configuration" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="WindowsUpdate" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Windows Update" FontWeight="SemiBold" />
+                                        <TextBlock Text="Update status and history" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="CommandPrompt" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="Command Prompt" FontWeight="SemiBold" />
+                                        <TextBlock Text="Classic Windows shell" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}" Tag="PowerShell" Click="ToolButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="PowerShell" FontWeight="SemiBold" />
+                                        <TextBlock Text="Windows administration shell" Style="{StaticResource LabelText}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
